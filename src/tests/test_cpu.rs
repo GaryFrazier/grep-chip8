@@ -1,23 +1,25 @@
+use crate::emulator::Emulator;
+
 #[test]
 fn get_next_instruction() {
     // arrange
-    let mut ram: [u8; 0x1000] = [0; 0x1000];
-    ram[2] = 0xAB;
-    ram[3] = 0xCD;
+    let mut emulator = Emulator::default();
+    emulator.pc = 2;
+    emulator.ram = [0; 0x1000];
 
-    let mut pc: u16 = 2;
+    emulator.ram[2] = 0xAB;
+    emulator.ram[3] = 0xCD;
 
     let expected_pc: u16 = 4; // incremented by 2
     let expected_instruction: u16 = 0xABCD;
 
     // act
-    let next_instruction = crate::cpu::get_next_instruction(&mut ram, &mut pc);
+    let next_instruction = crate::cpu::get_next_instruction(&mut emulator);
 
     // assert
-    assert_eq!(expected_pc, pc);
+    assert_eq!(expected_pc, emulator.pc);
     assert_eq!(expected_instruction, next_instruction);
 }
-
 
 ////////////////////////////// INSTRUCTIONS ////////////////////////////////////////
 
@@ -33,30 +35,33 @@ fn sys() {
 #[test]
 fn cls() {
     // arrange
+    let mut emulator = Emulator::default();
+    emulator.display_memory = [true; 0x800];
+
     let expected_display_mem: [bool; 0x800] = [false; 0x800];
-    let mut test_display_mem: [bool; 0x800] = [true; 0x800];
 
     // act
-    crate::cpu::cls(&mut test_display_mem);
+    crate::cpu::cls(&mut emulator);
 
     // assert
-    assert!(test_display_mem.iter().eq(expected_display_mem.iter()));
+    assert!(emulator.display_memory.iter().eq(expected_display_mem.iter()));
 }
 
 #[test]
 fn ret() {
     // arrange
-    let stack: [u16; 0xF] = [0xFE; 0xF];
-    let mut sp: u8 = 5;
-    let mut pc: u16 = 0;
+    let mut emulator = Emulator::default();
+    emulator.sp = 5;
+    emulator.stack = [0xFE;0xF];
+    emulator.pc = 0;
 
     let expected_pc: u16 = 0xFE;
     let expected_sp: u8 = 4;
 
     // act
-    crate::cpu::ret(&stack, &mut sp, &mut pc);
+    crate::cpu::ret(&mut emulator);
 
     // assert
-    assert_eq!(expected_pc, pc);
-    assert_eq!(expected_sp, sp);
+    assert_eq!(expected_pc, emulator.pc);
+    assert_eq!(expected_sp, emulator.sp);
 }
