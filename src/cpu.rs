@@ -36,6 +36,22 @@ pub fn call_instruction (emulator: &mut Emulator, instruction: u16) {
         _ if (instruction & 0x8006 == 0x8006) => shrxy(emulator, instruction), // 8xy6
         _ if (instruction & 0x8007 == 0x8007) => subnxy(emulator, instruction), // 8xy7
         _ if (instruction & 0x800E == 0x800E) => shlxy(emulator, instruction), // 8xyE
+        _ if (instruction & 0x9000 == 0x9000) => snexy(emulator, instruction), // 9xy0
+        _ if (instruction & 0xA000 == 0xA000) => ldi(emulator, instruction), // Annn
+        _ if (instruction & 0xB000 == 0xB000) => jpv(emulator, instruction), // Bnnn
+        _ if (instruction & 0xC000 == 0xC000) => rnd(emulator, instruction), // Cxkk
+        _ if (instruction & 0xD000 == 0xD000) => drw(emulator, instruction), // Dxyn
+        _ if (instruction & 0xE09E == 0xE09E) => skp(emulator, instruction), // Ex9E
+        _ if (instruction & 0xE0A1 == 0xE0A1) => sknp(emulator, instruction), // ExA1
+        _ if (instruction & 0xF007 == 0xF007) => ldxdt(emulator, instruction), // Fx07
+        _ if (instruction & 0xF00A == 0xF00A) => ldk(emulator, instruction), // Fx0A
+        _ if (instruction & 0xF015 == 0xF015) => lddt(emulator, instruction), // Fx15
+        _ if (instruction & 0xF018 == 0xF018) => ldst(emulator, instruction), // Fx18
+        _ if (instruction & 0xF01E == 0xF01E) => addi(emulator, instruction), // Fx1E
+        _ if (instruction & 0xF029 == 0xF029) => ldiv(emulator, instruction), // Fx29
+        _ if (instruction & 0xF033 == 0xF033) => ldb(emulator, instruction), // Fx33
+        _ if (instruction & 0xF055 == 0xF055) => ldii(emulator, instruction), // Fx55
+        _ if (instruction & 0xF065 == 0xF065) => ldvi(emulator, instruction), // Fx65
         _ => {
             eprintln!("Error! Instruction not supported, please contact developer. Instruction code: {:#?}", instruction);
             std::process::exit(1);
@@ -217,4 +233,16 @@ pub fn shlxy(emulator: &mut Emulator, instruction: u16) {
 
     emulator.v[0xF] = if  emulator.v[x] & 0x80 == 0x80 { 1 } else { 0 };
     emulator.v[x] = emulator.v[x].wrapping_mul(2);
+}
+
+// 9xy0 - SNE Vx, Vy
+// Skip next instruction if Vx != Vy.
+// The values of Vx and Vy are compared, and if they are not equal, the program counter is increased by 2.
+pub fn snexy(emulator: &mut Emulator, instruction: u16) {
+    let x = hex_util::get_nth_nibble(instruction, 3);
+    let y = hex_util::get_nth_nibble(instruction, 2);
+
+    if emulator.v[x] != emulator.v[y] {
+        emulator.pc += 2;
+    }
 }

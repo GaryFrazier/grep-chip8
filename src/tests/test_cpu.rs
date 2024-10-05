@@ -317,3 +317,16 @@ fn shlxy() {
     assert_eq!(emulator.v[4], 0xE0);
     assert_eq!(emulator.v[0xF], 0x1);
 }
+
+#[test]
+fn snexy() {
+    // arrange
+    let mut emulator = Emulator::default();
+    emulator.v[4] = 0x56;
+    emulator.v[5] = 0x57;
+
+    let instruction = 0x9450;
+
+    crate::cpu::snexy(&mut emulator, instruction);
+    assert_eq!(emulator.pc, 2);
+}
