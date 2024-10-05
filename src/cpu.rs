@@ -20,11 +20,22 @@ pub fn call_instruction (emulator: &mut Emulator, instruction: u16) {
         0x00E0 => cls(emulator),
         0x00EE => ret(emulator),
         _ if (instruction < 0x1000) => sys(), // 0nnn
-        _ if (instruction >= 0x1000 && instruction < 0x2000) => jp(emulator, instruction), // 1nnn
-        _ if (instruction >= 0x2000 && instruction < 0x3000) => call(emulator, instruction), // 2nnn
-        _ if (instruction >= 0x3000 && instruction < 0x4000) => se(emulator, instruction), // 3xkk
-        _ if (instruction >= 0x4000 && instruction < 0x5000) => sne(emulator, instruction), // 4xkk
-        _ if (instruction >= 0x5000 && instruction < 0x6000) => sev(emulator, instruction), // 5xy0
+        _ if (instruction & 0x1000 == 0x1000) => jp(emulator, instruction), // 1nnn
+        _ if (instruction & 0x2000 == 0x2000) => call(emulator, instruction), // 2nnn
+        _ if (instruction & 0x3000 == 0x3000) => se(emulator, instruction), // 3xkk
+        _ if (instruction & 0x4000 == 0x4000) => sne(emulator, instruction), // 4xkk
+        _ if (instruction & 0x5000 == 0x5000) => sev(emulator, instruction), // 5xy0
+        _ if (instruction & 0x6000 == 0x6000) => ldx(emulator, instruction), // 6xkk
+        _ if (instruction & 0x7000 == 0x7000) => addx(emulator, instruction), // 7xkk
+        _ if (instruction & 0x8000 == 0x8000) => ldxy(emulator, instruction), // 8xy0
+        _ if (instruction & 0x8001 == 0x8001) => orxy(emulator, instruction), // 8xy1
+        _ if (instruction & 0x8002 == 0x8002) => andxy(emulator, instruction), // 8xy2
+        _ if (instruction & 0x8003 == 0x8003) => xorxy(emulator, instruction), // 8xy3
+        _ if (instruction & 0x8004 == 0x8004) => addxy(emulator, instruction), // 8xy4
+        _ if (instruction & 0x8005 == 0x8005) => subxy(emulator, instruction), // 8xy5
+        _ if (instruction & 0x8006 == 0x8006) => shrxy(emulator, instruction), // 8xy6
+        _ if (instruction & 0x8007 == 0x8007) => subnxy(emulator, instruction), // 8xy7
+        _ if (instruction & 0x800E == 0x800E) => shlxy(emulator, instruction), // 8xyE
         _ => {
             eprintln!("Error! Instruction not supported, please contact developer. Instruction code: {:#?}", instruction);
             std::process::exit(1);
@@ -99,4 +110,111 @@ pub fn sev(emulator: &mut Emulator, instruction: u16) {
     if emulator.v[x] == emulator.v[y] {
         emulator.pc += 2;
     }
+}
+
+// 6xkk - LD Vx, byte
+// Set Vx = kk
+// The interpreter puts the value kk into register Vx.
+pub fn ldx(emulator: &mut Emulator, instruction: u16) {
+    let x = hex_util::get_nth_nibble(instruction, 3);
+    emulator.v[x] = (instruction & 0xFF) as u8;
+}
+
+// 7xkk - ADD Vx, byte
+// Set Vx = Vx + kk.
+// Adds the value kk to the value of register Vx, then stores the result in Vx. 
+pub fn addx(emulator: &mut Emulator, instruction: u16) {
+    let x = hex_util::get_nth_nibble(instruction, 3);
+    emulator.v[x]+= (instruction & 0xFF) as u8;
+}
+
+// 8xy0 - LD Vx, Vy
+// Set Vx = Vy.
+// Stores the value of register Vy in register Vx.
+pub fn ldxy(emulator: &mut Emulator, instruction: u16) {
+    let x = hex_util::get_nth_nibble(instruction, 3);
+    let y = hex_util::get_nth_nibble(instruction, 2);
+    emulator.v[x] = emulator.v[y];
+}
+
+// 8xy1 - OR Vx, Vy
+// Set Vx = Vx OR Vy.
+// Performs a bitwise OR on the values of Vx and Vy, then stores the result in Vx.
+pub fn orxy(emulator: &mut Emulator, instruction: u16) {
+    let x = hex_util::get_nth_nibble(instruction, 3);
+    let y = hex_util::get_nth_nibble(instruction, 2);
+    emulator.v[x] = emulator.v[x] | emulator.v[y];
+}
+
+// 8xy2 - AND Vx, Vy
+// Set Vx = Vx AND Vy.
+// Performs a bitwise AND on the values of Vx and Vy, then stores the result in Vx.
+pub fn andxy(emulator: &mut Emulator, instruction: u16) {
+    let x = hex_util::get_nth_nibble(instruction, 3);
+    let y = hex_util::get_nth_nibble(instruction, 2);
+    emulator.v[x] = emulator.v[x] & emulator.v[y];
+}
+
+// 8xy3 - XOR Vx, Vy
+// Set Vx = Vx XOR Vy.
+// Performs a bitwise XOR on the values of Vx and Vy, then stores the result in Vx.
+pub fn xorxy(emulator: &mut Emulator, instruction: u16) {
+    let x = hex_util::get_nth_nibble(instruction, 3);
+    let y = hex_util::get_nth_nibble(instruction, 2);
+    emulator.v[x] = emulator.v[x] ^ emulator.v[y];
+}
+
+// 8xy4 - ADD Vx, Vy
+// Set Vx = Vx + Vy, set VF = carry.
+// The values of Vx and Vy are added together. If the result is greater than 8 bits (i.e., > 255,) 
+// VF is set to 1, otherwise 0. Only the lowest 8 bits of the result are kept, and stored in Vx.
+pub fn addxy(emulator: &mut Emulator, instruction: u16) {
+    let x = hex_util::get_nth_nibble(instruction, 3);
+    let y = hex_util::get_nth_nibble(instruction, 2);
+    let total: u16 = (emulator.v[x] as u16) + (emulator.v[y] as u16);
+
+    emulator.v[0xF] = if total > 0xFF { 1 } else { 0 };
+    emulator.v[x] = (total & 0xFF) as u8;
+}
+
+// 8xy5 - SUB Vx, Vy
+// Set Vx = Vx - Vy, set VF = NOT borrow.
+// If Vx > Vy, then VF is set to 1, otherwise 0. Then Vy is subtracted from Vx, and the results stored in Vx.
+pub fn subxy(emulator: &mut Emulator, instruction: u16) {
+    let x = hex_util::get_nth_nibble(instruction, 3);
+    let y = hex_util::get_nth_nibble(instruction, 2);
+
+    emulator.v[0xF] = if emulator.v[x] > emulator.v[y] { 1 } else { 0 };
+    emulator.v[x] = emulator.v[x] - emulator.v[y];
+}
+
+// 8xy6 - SHR Vx {, Vy}
+// Set Vx = Vx SHR 1.
+// If the least-significant bit of Vx is 1, then VF is set to 1, otherwise 0. Then Vx is divided by 2.
+pub fn shrxy(emulator: &mut Emulator, instruction: u16) {
+    let x = hex_util::get_nth_nibble(instruction, 3);
+
+    emulator.v[0xF] = emulator.v[x] & 0x1;
+    emulator.v[x] = emulator.v[x] / 2;
+}
+
+// 8xy7 - SUBN Vx, Vy
+// Set Vx = Vy - Vx, set VF = NOT borrow.
+// If Vy > Vx, then VF is set to 1, otherwise 0. Then Vx is subtracted from Vy, and the results stored in Vx.
+pub fn subnxy(emulator: &mut Emulator, instruction: u16) {
+    let x = hex_util::get_nth_nibble(instruction, 3);
+    let y = hex_util::get_nth_nibble(instruction, 2);
+
+    emulator.v[0xF] = if emulator.v[y] > emulator.v[x] { 1 } else { 0 };
+    emulator.v[x] = emulator.v[y] - emulator.v[x];
+}
+
+// 8xyE - SHL Vx {, Vy}
+// Set Vx = Vx SHL 1.
+// If the most-significant bit of Vx is 1, then VF is set to 1, otherwise to 0. Then Vx is multiplied by 2.
+pub fn shlxy(emulator: &mut Emulator, instruction: u16) {
+    let x = hex_util::get_nth_nibble(instruction, 3);
+
+    emulator.v[0xF] = emulator.v[x] & 0x80;
+    emulator.v[x] = emulator.v[x] * 2;
 }

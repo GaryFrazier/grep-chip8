@@ -151,3 +151,69 @@ fn sev() {
     crate::cpu::sev(&mut emulator, neq_instruction);
     assert_eq!(emulator.pc, 2);
 }
+
+#[test]
+fn ldx() {
+    // arrange
+    let mut emulator = Emulator::default();
+
+    // act
+    let instruction = 0x7450;
+
+    // assert
+    crate::cpu::ldx(&mut emulator, instruction);
+    assert_eq!(emulator.v[4], 0x50);
+}
+
+#[test]
+fn addx() {
+    // arrange
+    let mut emulator = Emulator::default();
+    emulator.v[4] = 0x1;
+
+    // act
+    let instruction = 0x7450;
+
+    // assert
+    crate::cpu::addx(&mut emulator, instruction);
+    assert_eq!(emulator.v[4], 0x51);
+}
+
+#[test]
+fn ldxy() {
+    // arrange
+    let mut emulator = Emulator::default();
+    emulator.v[5] = 0x2;
+
+    // act
+    let instruction = 0x8450;
+
+    // assert
+    crate::cpu::ldxy(&mut emulator, instruction);
+    assert_eq!(emulator.v[4], emulator.v[5]);
+}
+
+#[test]
+fn orxy() {
+    // arrange
+    let mut emulator = Emulator::default();
+    emulator.v[4] = 0x8;
+    emulator.v[5] = 0x4;
+
+    // act
+    let instruction = 0x8451;
+
+    // assert
+    crate::cpu::orxy(&mut emulator, instruction);
+    assert_eq!(emulator.v[4], 0xC);
+}
+
+// if (instruction & 0x8000 == 0x8000) => ldxy(emulator, instruction), // 8xy0
+// if (instruction & 0x8001 == 0x8001) => orxy(emulator, instruction), // 8xy1
+// if (instruction & 0x8002 == 0x8002) => andxy(emulator, instruction), // 8xy2
+// if (instruction & 0x8003 == 0x8003) => xorxy(emulator, instruction), // 8xy3
+// if (instruction & 0x8004 == 0x8004) => addxy(emulator, instruction), // 8xy4
+// if (instruction & 0x8005 == 0x8005) => subxy(emulator, instruction), // 8xy5
+// if (instruction & 0x8006 == 0x8006) => shrxy(emulator, instruction), // 8xy6
+// if (instruction & 0x8007 == 0x8007) => subnxy(emulator, instruction), // 8xy7
+// if (instruction & 0x800E == 0x800E) => shlxy(emulator, instruction), // 8xyE
