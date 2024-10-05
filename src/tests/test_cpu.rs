@@ -52,8 +52,7 @@ fn ret() {
     // arrange
     let mut emulator = Emulator::default();
     emulator.sp = 5;
-    emulator.stack = [0xFE;0xF];
-    emulator.pc = 0;
+    emulator.stack = [0xFE;0x10];
 
     let expected_pc: u16 = 0xFE;
     let expected_sp: u8 = 4;
@@ -64,4 +63,56 @@ fn ret() {
     // assert
     assert_eq!(expected_pc, emulator.pc);
     assert_eq!(expected_sp, emulator.sp);
+}
+
+#[test]
+fn jp() {
+    // arrange
+    let mut emulator = Emulator::default();
+
+    let expected_pc: u16 = 0x0123;
+    let instruction: u16 = 0x1123;
+
+    // act
+    crate::cpu::jp(&mut emulator, instruction);
+
+    // assert
+    assert_eq!(emulator.pc, expected_pc);
+}
+
+#[test]
+fn call() {
+    // arrange
+    let mut emulator = Emulator::default();
+    emulator.pc = 0x0456;
+
+    let expected_sp: u8 = 1;
+    let expected_stack_value = 0x0456; // current pc pushed onto stack
+    let instruction: u16 = 0x2123;
+    let expected_pc = 0x0123;
+
+    // act
+    crate::cpu::call(&mut emulator, instruction);
+
+    // assert
+    assert_eq!(emulator.pc, expected_pc);
+    assert_eq!(emulator.sp, expected_sp);
+    assert_eq!(emulator.stack[emulator.sp as usize], expected_stack_value);
+}
+
+#[test]
+fn se() {
+    // arrange
+    let mut emulator = Emulator::default();
+    emulator.v[4] = 0x56;
+
+    let eq_instruction = 0x0456;
+    let neq_instruction = 0x0457;
+
+    crate::cpu::se(&mut emulator, eq_instruction);
+    assert_eq!(emulator.pc, 2);
+
+    // not equal, dont increment
+    crate::cpu::se(&mut emulator, neq_instruction);
+    assert_eq!(emulator.pc, 2);
 }

@@ -1,8 +1,9 @@
 use crate::emulator::Emulator;
+use crate::hex_util;
 
 pub fn execute_next_instruction(emulator: &mut Emulator) {
     let instruction: u16 = get_next_instruction(emulator);
-    call_instruction(instruction, emulator);
+    call_instruction(emulator, instruction);
 }
 
 // gets next instruction from memory and increments pc
@@ -14,11 +15,13 @@ pub fn get_next_instruction(emulator: &mut Emulator) -> u16 {
 }
 
 // finds instruction based on the hex, then executes mapped function
-pub fn call_instruction (instruction: u16, emulator: &mut Emulator) {
+pub fn call_instruction (emulator: &mut Emulator, instruction: u16) {
     match instruction {
         0x00E0 => cls(emulator),
         0x00EE => ret(emulator),
         _ if (instruction < 0x1000) => sys(), // 0nnn
+        _ if (instruction >= 0x1000 && instruction < 0x2000) => jp(emulator, instruction), // 1nnn
+        _ if (instruction >= 0x2000 && instruction < 0x3000) => call(emulator, instruction), // 2nnn
         _ => {
             eprintln!("Error! Instruction not supported, please contact developer. Instruction code: {:#?}", instruction);
             std::process::exit(1);
@@ -46,4 +49,30 @@ pub fn cls(emulator: &mut Emulator) {
 pub fn ret(emulator: &mut Emulator) {
     emulator.pc = emulator.stack[emulator.sp as usize];
     emulator.sp -= 1;
+}
+
+// 1nnn - JP addr
+// Jump to location nnn.
+// The interpreter sets the program counter to nnn.
+pub fn jp(emulator: &mut Emulator, instruction: u16) {
+    emulator.pc = instruction & 0x0FFF;
+}
+
+// 2nnn - CALL addr
+// Call subroutine at nnn.
+// The interpreter increments the stack pointer, then puts the current PC on the top of the stack. The PC is then set to nnn.
+pub fn call(emulator: &mut Emulator, instruction: u16) {
+    emulator.sp += 1;
+    emulator.stack[emulator.sp as usize] = emulator.pc;
+    emulator.pc = instruction & 0x0FFF;
+}
+
+// 3xkk - SE Vx, byte
+// Skip next instruction if Vx = kk.
+// The interpreter compares register Vx to kk, and if they are equal, increments the program counter by 2.
+pub fn se(emulator: &mut Emulator, instruction: u16) {
+    let x = hex_util::get_nth_nibble(instruction, 3);
+    if emulator.v[x] == ((instruction & 0xFF) as u8) {
+        emulator.pc += 2;
+    }
 }
