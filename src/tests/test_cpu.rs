@@ -330,3 +330,153 @@ fn snexy() {
     crate::cpu::snexy(&mut emulator, instruction);
     assert_eq!(emulator.pc, 2);
 }
+
+#[test]
+fn ldi() {
+    // arrange
+    let mut emulator = Emulator::default();
+    
+
+    crate::cpu::ldi(&mut emulator, instruction);
+    assert_eq!(emulator.pc, 2);
+}
+
+#[test]
+fn jpv() {
+    // arrange
+    let mut emulator = Emulator::default();
+    
+
+    crate::cpu::jpv(&mut emulator, instruction);
+    assert_eq!(emulator.pc, 2);
+}
+
+#[test]
+fn rnd() {
+    // arrange
+    let mut emulator = Emulator::default();
+    
+
+    crate::cpu::rnd(&mut emulator, instruction);
+    assert_eq!(emulator.pc, 2);
+}
+
+#[test]
+fn drw() {
+    // arrange
+    let mut emulator = Emulator::default();
+    
+
+    crate::cpu::drw(&mut emulator, instruction);
+    assert_eq!(emulator.pc, 2);
+}
+
+#[test]
+fn skp() {
+    // arrange
+    let mut emulator = Emulator::default();
+    
+
+    crate::cpu::skp(&mut emulator, instruction);
+    assert_eq!(emulator.pc, 2);
+}
+
+#[test]
+fn sknp() {
+    // arrange
+    let mut emulator = Emulator::default();
+    
+
+    crate::cpu::sknp(&mut emulator, instruction);
+    assert_eq!(emulator.pc, 2);
+}
+
+#[test]
+fn ldxdt() {
+    // arrange
+    let mut emulator = Emulator::default();
+    
+
+    crate::cpu::ldxdt(&mut emulator, instruction);
+    assert_eq!(emulator.pc, 2);
+}
+
+#[test]
+fn ldk() {
+    // arrange
+    let mut emulator = Emulator::default();
+    
+
+    crate::cpu::ldk(&mut emulator, instruction);
+    assert_eq!(emulator.pc, 2);
+}
+
+#[test]
+fn lddt() {
+    // arrange
+    let mut emulator = Emulator::default();
+    
+
+    crate::cpu::lddt(&mut emulator, instruction);
+    assert_eq!(emulator.pc, 2);
+}
+
+#[test]
+fn ldst() {
+    // arrange
+    let mut emulator = Emulator::default();
+    
+
+    crate::cpu::ldst(&mut emulator, instruction);
+    assert_eq!(emulator.pc, 2);
+}
+
+#[test]
+fn addi() {
+    // arrange
+    let mut emulator = Emulator::default();
+    
+
+    crate::cpu::addi(&mut emulator, instruction);
+    assert_eq!(emulator.pc, 2);
+}
+
+#[test]
+fn ldiv() {
+    // arrange
+    let mut emulator = Emulator::default();
+    
+
+    crate::cpu::ldiv(&mut emulator, instruction);
+    assert_eq!(emulator.pc, 2);
+}
+
+#[test]
+fn ldb() {
+    // arrange
+    let mut emulator = Emulator::default();
+    
+
+    crate::cpu::ldb(&mut emulator, instruction);
+    assert_eq!(emulator.pc, 2);
+}
+
+#[test]
+fn ldii() {
+    // arrange
+    let mut emulator = Emulator::default();
+    
+
+    crate::cpu::ldii(&mut emulator, instruction);
+    assert_eq!(emulator.pc, 2);
+}
+
+#[test]
+fn ldvi() {
+    // arrange
+    let mut emulator = Emulator::default();
+    
+
+    crate::cpu::ldvi(&mut emulator, instruction);
+    assert_eq!(emulator.pc, 2);
+}
