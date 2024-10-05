@@ -185,7 +185,7 @@ pub fn subxy(emulator: &mut Emulator, instruction: u16) {
     let y = hex_util::get_nth_nibble(instruction, 2);
 
     emulator.v[0xF] = if emulator.v[x] > emulator.v[y] { 1 } else { 0 };
-    emulator.v[x] = emulator.v[x] - emulator.v[y];
+    emulator.v[x] = emulator.v[x].wrapping_sub(emulator.v[y]);
 }
 
 // 8xy6 - SHR Vx {, Vy}
@@ -206,7 +206,7 @@ pub fn subnxy(emulator: &mut Emulator, instruction: u16) {
     let y = hex_util::get_nth_nibble(instruction, 2);
 
     emulator.v[0xF] = if emulator.v[y] > emulator.v[x] { 1 } else { 0 };
-    emulator.v[x] = emulator.v[y] - emulator.v[x];
+    emulator.v[x] = emulator.v[y].wrapping_sub(emulator.v[x]);
 }
 
 // 8xyE - SHL Vx {, Vy}
@@ -215,6 +215,6 @@ pub fn subnxy(emulator: &mut Emulator, instruction: u16) {
 pub fn shlxy(emulator: &mut Emulator, instruction: u16) {
     let x = hex_util::get_nth_nibble(instruction, 3);
 
-    emulator.v[0xF] = emulator.v[x] & 0x80;
-    emulator.v[x] = emulator.v[x] * 2;
+    emulator.v[0xF] = if  emulator.v[x] & 0x80 == 0x80 { 1 } else { 0 };
+    emulator.v[x] = emulator.v[x].wrapping_mul(2);
 }

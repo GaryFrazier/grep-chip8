@@ -208,12 +208,112 @@ fn orxy() {
     assert_eq!(emulator.v[4], 0xC);
 }
 
-// if (instruction & 0x8000 == 0x8000) => ldxy(emulator, instruction), // 8xy0
-// if (instruction & 0x8001 == 0x8001) => orxy(emulator, instruction), // 8xy1
-// if (instruction & 0x8002 == 0x8002) => andxy(emulator, instruction), // 8xy2
-// if (instruction & 0x8003 == 0x8003) => xorxy(emulator, instruction), // 8xy3
-// if (instruction & 0x8004 == 0x8004) => addxy(emulator, instruction), // 8xy4
-// if (instruction & 0x8005 == 0x8005) => subxy(emulator, instruction), // 8xy5
-// if (instruction & 0x8006 == 0x8006) => shrxy(emulator, instruction), // 8xy6
-// if (instruction & 0x8007 == 0x8007) => subnxy(emulator, instruction), // 8xy7
-// if (instruction & 0x800E == 0x800E) => shlxy(emulator, instruction), // 8xyE
+#[test]
+fn andxy() {
+    // arrange
+    let mut emulator = Emulator::default();
+    emulator.v[4] = 0xC;
+    emulator.v[5] = 0x4;
+
+    // act
+    let instruction = 0x8452;
+
+    // assert
+    crate::cpu::andxy(&mut emulator, instruction);
+    assert_eq!(emulator.v[4], 0x4);
+}
+
+#[test]
+fn xorxy() {
+    // arrange
+    let mut emulator = Emulator::default();
+    emulator.v[4] = 0xC;
+    emulator.v[5] = 0x4;
+
+    // act
+    let instruction = 0x8453;
+
+    // assert
+    crate::cpu::xorxy(&mut emulator, instruction);
+    assert_eq!(emulator.v[4], 0x8);
+}
+
+#[test]
+fn addxy() {
+    // arrange
+    let mut emulator = Emulator::default();
+    emulator.v[4] = 0xFF;
+    emulator.v[5] = 0x3;
+
+    // act
+    let instruction = 0x8454;
+
+    // assert
+    crate::cpu::addxy(&mut emulator, instruction);
+    assert_eq!(emulator.v[4], 0x2);
+    assert_eq!(emulator.v[0xF], 0x1);
+}
+
+#[test]
+fn subxy() {
+    // arrange
+    let mut emulator = Emulator::default();
+    emulator.v[4] = 0xFF;
+    emulator.v[5] = 0x3;
+
+    // act
+    let instruction = 0x8455;
+
+    // assert
+    crate::cpu::subxy(&mut emulator, instruction);
+    assert_eq!(emulator.v[4], 0xFC);
+    assert_eq!(emulator.v[0xF], 0x1);
+}
+
+
+#[test]
+fn shrxy() {
+    // arrange
+    let mut emulator = Emulator::default();
+    emulator.v[4] = 0xFF;
+
+    // act
+    let instruction = 0x8456;
+
+    // assert
+    crate::cpu::shrxy(&mut emulator, instruction);
+    assert_eq!(emulator.v[4], 0x7F);
+    assert_eq!(emulator.v[0xF], 0x1);
+}
+
+#[test]
+fn subnxy() {
+    // arrange
+    let mut emulator = Emulator::default();
+    emulator.v[4] = 0x3;
+    emulator.v[5] = 0xFF;
+
+    // act
+    let instruction = 0x8457;
+
+    // assert
+    crate::cpu::subnxy(&mut emulator, instruction);
+    assert_eq!(emulator.v[4], 0xFC);
+    assert_eq!(emulator.v[0xF], 0x1);
+}
+
+
+#[test]
+fn shlxy() {
+    // arrange
+    let mut emulator = Emulator::default();
+    emulator.v[4] = 0xF0;
+
+    // act
+    let instruction = 0x845E;
+
+    // assert
+    crate::cpu::shlxy(&mut emulator, instruction);
+    assert_eq!(emulator.v[4], 0xE0);
+    assert_eq!(emulator.v[0xF], 0x1);
+}
