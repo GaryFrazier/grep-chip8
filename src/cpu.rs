@@ -22,6 +22,9 @@ pub fn call_instruction (emulator: &mut Emulator, instruction: u16) {
         _ if (instruction < 0x1000) => sys(), // 0nnn
         _ if (instruction >= 0x1000 && instruction < 0x2000) => jp(emulator, instruction), // 1nnn
         _ if (instruction >= 0x2000 && instruction < 0x3000) => call(emulator, instruction), // 2nnn
+        _ if (instruction >= 0x3000 && instruction < 0x4000) => se(emulator, instruction), // 3xkk
+        _ if (instruction >= 0x4000 && instruction < 0x5000) => sne(emulator, instruction), // 4xkk
+        _ if (instruction >= 0x5000 && instruction < 0x6000) => sev(emulator, instruction), // 5xy0
         _ => {
             eprintln!("Error! Instruction not supported, please contact developer. Instruction code: {:#?}", instruction);
             std::process::exit(1);
@@ -73,6 +76,27 @@ pub fn call(emulator: &mut Emulator, instruction: u16) {
 pub fn se(emulator: &mut Emulator, instruction: u16) {
     let x = hex_util::get_nth_nibble(instruction, 3);
     if emulator.v[x] == ((instruction & 0xFF) as u8) {
+        emulator.pc += 2;
+    }
+}
+
+// 4xkk - SNE Vx, byte
+// Skip next instruction if Vx != kk.
+// The interpreter compares register Vx to kk, and if they are not equal, increments the program counter by 2.
+pub fn sne(emulator: &mut Emulator, instruction: u16) {
+    let x = hex_util::get_nth_nibble(instruction, 3);
+    if emulator.v[x] != ((instruction & 0xFF) as u8) {
+        emulator.pc += 2;
+    }
+}
+
+// 5xy0 - SE Vx, Vy
+// Skip next instruction if Vx = Vy.
+// The interpreter compares register Vx to register Vy, and if they are equal, increments the program counter by 2.
+pub fn sev(emulator: &mut Emulator, instruction: u16) {
+    let x = hex_util::get_nth_nibble(instruction, 3);
+    let y = hex_util::get_nth_nibble(instruction, 2);
+    if emulator.v[x] == emulator.v[y] {
         emulator.pc += 2;
     }
 }

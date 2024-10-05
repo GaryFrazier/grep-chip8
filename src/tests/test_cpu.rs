@@ -106,13 +106,48 @@ fn se() {
     let mut emulator = Emulator::default();
     emulator.v[4] = 0x56;
 
-    let eq_instruction = 0x0456;
-    let neq_instruction = 0x0457;
+    let eq_instruction = 0x3456;
+    let neq_instruction = 0x3457;
 
     crate::cpu::se(&mut emulator, eq_instruction);
     assert_eq!(emulator.pc, 2);
 
     // not equal, dont increment
     crate::cpu::se(&mut emulator, neq_instruction);
+    assert_eq!(emulator.pc, 2);
+}
+
+#[test]
+fn sne() {
+    // arrange
+    let mut emulator = Emulator::default();
+    emulator.v[4] = 0x56;
+
+    let eq_instruction = 0x4456;
+    let neq_instruction = 0x4457;
+
+    crate::cpu::sne(&mut emulator, eq_instruction);
+    assert_eq!(emulator.pc, 0);
+
+    // equal, dont increment
+    crate::cpu::sne(&mut emulator, neq_instruction);
+    assert_eq!(emulator.pc, 2);
+}
+
+#[test]
+fn sev() {
+    // arrange
+    let mut emulator = Emulator::default();
+    emulator.v[4] = 0x56;
+    emulator.v[5] = 0x56;
+
+    let eq_instruction = 0x5450;
+    let neq_instruction = 0x5460;
+
+    crate::cpu::sev(&mut emulator, eq_instruction);
+    assert_eq!(emulator.pc, 2);
+
+    // not equal, dont increment
+    crate::cpu::sev(&mut emulator, neq_instruction);
     assert_eq!(emulator.pc, 2);
 }
