@@ -282,21 +282,50 @@ If the sprite is positioned so part of it is outside the coordinates of the disp
  See instruction 8xy3 for more information on XOR, and section 2.4, Display, for more information on the Chip-8 screen and sprites.
 */
 pub fn drw(emulator: &mut Emulator, instruction: u16) {
-    
+    let x = hex_util::get_nth_nibble(instruction, 3);
+    let y = hex_util::get_nth_nibble(instruction, 2);
+    let n = hex_util::get_nth_nibble(instruction, 1);
+
+    emulator.v[0xF] = 0;
+
+    for i in 0..=n {
+        let height = ((y + i) % 32) * 32;
+        // 8 pixels per sprite line
+        for j in 0..8 {
+            let width = (x + j) % 64;
+            let old = emulator.display_memory[width + height];
+            let new = ((emulator.ram[emulator.i as usize + i] >> j) & 0x1) == 0x1;
+
+            // if erased, set vF flag
+            if old && new {
+                emulator.v[0xF] = 1;
+            }
+
+            emulator.display_memory[width + height] ^= new;
+        }
+    }
 }
 
 // Ex9E - SKP Vx
 // Skip next instruction if key with the value of Vx is pressed.
 // Checks the keyboard, and if the key corresponding to the value of Vx is currently in the down position, PC is increased by 2.
 pub fn skp(emulator: &mut Emulator, instruction: u16) {
-    
+    let x = hex_util::get_nth_nibble(instruction, 3);
+    let key = emulator.keys[emulator.v[x] as usize];
+    if key {
+        emulator.pc += 2;
+    }
 }
 
 // ExA1 - SKNP Vx
 // Skip next instruction if key with the value of Vx is not pressed.
 // Checks the keyboard, and if the key corresponding to the value of Vx is currently in the up position, PC is increased by 2.
 pub fn sknp(emulator: &mut Emulator, instruction: u16) {
-    
+    let x = hex_util::get_nth_nibble(instruction, 3);
+    let key = emulator.keys[emulator.v[x] as usize];
+    if !key {
+        emulator.pc += 2;
+    }
 }
 
 // Fx07 - LD Vx, DT
@@ -311,7 +340,21 @@ pub fn ldxdt(emulator: &mut Emulator, instruction: u16) {
 // Wait for a key press, store the value of the key in Vx.
 // All execution stops until a key is pressed, then the value of that key is stored in Vx.
 pub fn ldk(emulator: &mut Emulator, instruction: u16) {
-    
+    let x = hex_util::get_nth_nibble(instruction, 3);
+
+    let mut pressed = false;
+    for i in 0..emulator.keys.len() {
+        if emulator.keys[i] {
+            emulator.v[x] = i as u8;
+            pressed = true;
+            break;
+        }
+    }
+
+    if !pressed {
+        // Redo opcode
+        emulator.pc -= 2;
+    }
 }
 
 // Fx15 - LD DT, Vx
@@ -343,7 +386,9 @@ pub fn addi(emulator: &mut Emulator, instruction: u16) {
 // The value of I is set to the location for the hexadecimal sprite corresponding to the value of Vx. 
 // See section 2.4, Display, for more information on the Chip-8 hexadecimal font.
 pub fn ldiv(emulator: &mut Emulator, instruction: u16) {
-    
+    let x = hex_util::get_nth_nibble(instruction, 3);
+    let c = emulator.v[x] as u16;
+    emulator.i = c * 5;
 }
 
 // Fx33 - LD B, Vx
