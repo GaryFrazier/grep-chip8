@@ -39,7 +39,7 @@ pub struct Emulator {
 impl Default for Emulator {
     fn default() -> Self {
         let mut emu = Emulator {
-            pc: 0,
+            pc: 0x200,
             sp: 0,
             stack: [0; 0x10],
             ram: [0; 0x1000],

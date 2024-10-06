@@ -10,49 +10,55 @@ pub fn execute_next_instruction(emulator: &mut Emulator) {
 // gets next instruction from memory and increments pc
 pub fn get_next_instruction(emulator: &mut Emulator) -> u16 {
     // all instructions are 2 bytes, msb first
+ 
     let instruction: u16 = ((emulator.ram[emulator.pc as usize] as u16) << 8) + emulator.ram[emulator.pc as usize + 1] as u16;
     emulator.pc += 2;
+
     return instruction;
 }
 
 // finds instruction based on the hex, then executes mapped function
 pub fn call_instruction (emulator: &mut Emulator, instruction: u16) {
+    if instruction != 0 && instruction != 5084 {
+        dbg!(instruction);
+    }
+
     match instruction {
         0x00E0 => cls(emulator),
         0x00EE => ret(emulator),
-        _ if (instruction < 0x1000) => sys(), // 0nnn
-        _ if (instruction & 0x1000 == 0x1000) => jp(emulator, instruction), // 1nnn
-        _ if (instruction & 0x2000 == 0x2000) => call(emulator, instruction), // 2nnn
-        _ if (instruction & 0x3000 == 0x3000) => se(emulator, instruction), // 3xkk
-        _ if (instruction & 0x4000 == 0x4000) => sne(emulator, instruction), // 4xkk
-        _ if (instruction & 0x5000 == 0x5000) => sev(emulator, instruction), // 5xy0
-        _ if (instruction & 0x6000 == 0x6000) => ldx(emulator, instruction), // 6xkk
-        _ if (instruction & 0x7000 == 0x7000) => addx(emulator, instruction), // 7xkk
-        _ if (instruction & 0x8000 == 0x8000) => ldxy(emulator, instruction), // 8xy0
-        _ if (instruction & 0x8001 == 0x8001) => orxy(emulator, instruction), // 8xy1
-        _ if (instruction & 0x8002 == 0x8002) => andxy(emulator, instruction), // 8xy2
-        _ if (instruction & 0x8003 == 0x8003) => xorxy(emulator, instruction), // 8xy3
-        _ if (instruction & 0x8004 == 0x8004) => addxy(emulator, instruction), // 8xy4
-        _ if (instruction & 0x8005 == 0x8005) => subxy(emulator, instruction), // 8xy5
-        _ if (instruction & 0x8006 == 0x8006) => shrxy(emulator, instruction), // 8xy6
-        _ if (instruction & 0x8007 == 0x8007) => subnxy(emulator, instruction), // 8xy7
-        _ if (instruction & 0x800E == 0x800E) => shlxy(emulator, instruction), // 8xyE
-        _ if (instruction & 0x9000 == 0x9000) => snexy(emulator, instruction), // 9xy0
-        _ if (instruction & 0xA000 == 0xA000) => ldi(emulator, instruction), // Annn
-        _ if (instruction & 0xB000 == 0xB000) => jpv(emulator, instruction), // Bnnn
-        _ if (instruction & 0xC000 == 0xC000) => rnd(emulator, instruction), // Cxkk
-        _ if (instruction & 0xD000 == 0xD000) => drw(emulator, instruction), // Dxyn
-        _ if (instruction & 0xE09E == 0xE09E) => skp(emulator, instruction), // Ex9E
-        _ if (instruction & 0xE0A1 == 0xE0A1) => sknp(emulator, instruction), // ExA1
-        _ if (instruction & 0xF007 == 0xF007) => ldxdt(emulator, instruction), // Fx07
-        _ if (instruction & 0xF00A == 0xF00A) => ldk(emulator, instruction), // Fx0A
-        _ if (instruction & 0xF015 == 0xF015) => lddt(emulator, instruction), // Fx15
-        _ if (instruction & 0xF018 == 0xF018) => ldst(emulator, instruction), // Fx18
-        _ if (instruction & 0xF01E == 0xF01E) => addi(emulator, instruction), // Fx1E
-        _ if (instruction & 0xF029 == 0xF029) => ldiv(emulator, instruction), // Fx29
-        _ if (instruction & 0xF033 == 0xF033) => ldb(emulator, instruction), // Fx33
-        _ if (instruction & 0xF055 == 0xF055) => ldii(emulator, instruction), // Fx55
-        _ if (instruction & 0xF065 == 0xF065) => ldvi(emulator, instruction), // Fx65
+        _ if (instruction & 0xF000 == 0x0000) => sys(), // 0nnn
+        _ if (instruction & 0xF000 == 0x1000) => jp(emulator, instruction), // 1nnn
+        _ if (instruction & 0xF000 == 0x2000) => call(emulator, instruction), // 2nnn
+        _ if (instruction & 0xF000 == 0x3000) => se(emulator, instruction), // 3xkk
+        _ if (instruction & 0xF000 == 0x4000) => sne(emulator, instruction), // 4xkk
+        _ if (instruction & 0xF00F == 0x5000) => sev(emulator, instruction), // 5xy0
+        _ if (instruction & 0xF000 == 0x6000) => ldx(emulator, instruction), // 6xkk
+        _ if (instruction & 0xF000 == 0x7000) => addx(emulator, instruction), // 7xkk
+        _ if (instruction & 0xF00F == 0x8000) => ldxy(emulator, instruction), // 8xy0
+        _ if (instruction & 0xF00F == 0x8001) => orxy(emulator, instruction), // 8xy1
+        _ if (instruction & 0xF002 == 0x8002) => andxy(emulator, instruction), // 8xy2
+        _ if (instruction & 0xF00F == 0x8003) => xorxy(emulator, instruction), // 8xy3
+        _ if (instruction & 0xF00F == 0x8004) => addxy(emulator, instruction), // 8xy4
+        _ if (instruction & 0xF00F == 0x8005) => subxy(emulator, instruction), // 8xy5
+        _ if (instruction & 0xF00F == 0x8006) => shrxy(emulator, instruction), // 8xy6
+        _ if (instruction & 0xF00F == 0x8007) => subnxy(emulator, instruction), // 8xy7
+        _ if (instruction & 0xF00F == 0x800E) => shlxy(emulator, instruction), // 8xyE
+        _ if (instruction & 0xF00F == 0x9000) => snexy(emulator, instruction), // 9xy0
+        _ if (instruction & 0xF000 == 0xA000) => ldi(emulator, instruction), // Annn
+        _ if (instruction & 0xF000 == 0xB000) => jpv(emulator, instruction), // Bnnn
+        _ if (instruction & 0xF000 == 0xC000) => rnd(emulator, instruction), // Cxkk
+        _ if (instruction & 0xF000 == 0xD000) => drw(emulator, instruction), // Dxyn
+        _ if (instruction & 0xF0FF == 0xE09E) => skp(emulator, instruction), // Ex9E
+        _ if (instruction & 0xF0FF == 0xE0A1) => sknp(emulator, instruction), // ExA1
+        _ if (instruction & 0xF0FF == 0xF007) => ldxdt(emulator, instruction), // Fx07
+        _ if (instruction & 0xF0FF == 0xF00A) => ldk(emulator, instruction), // Fx0A
+        _ if (instruction & 0xF0FF == 0xF015) => lddt(emulator, instruction), // Fx15
+        _ if (instruction & 0xF0FF == 0xF018) => ldst(emulator, instruction), // Fx18
+        _ if (instruction & 0xF0FF == 0xF01E) => addi(emulator, instruction), // Fx1E
+        _ if (instruction & 0xF0FF == 0xF029) => ldiv(emulator, instruction), // Fx29
+        _ if (instruction & 0xF0FF == 0xF033) => ldb(emulator, instruction), // Fx33
+        _ if (instruction & 0xF0FF == 0xF055) => ldii(emulator, instruction), // Fx55
+        _ if (instruction & 0xF0FF == 0xF065) => ldvi(emulator, instruction), // Fx65
         _ => {
             eprintln!("Error! Instruction not supported, please contact developer. Instruction code: {:#?}", instruction);
             std::process::exit(1);
@@ -142,7 +148,7 @@ pub fn ldx(emulator: &mut Emulator, instruction: u16) {
 // Adds the value kk to the value of register Vx, then stores the result in Vx. 
 pub fn addx(emulator: &mut Emulator, instruction: u16) {
     let x = hex_util::get_nth_nibble(instruction, 3);
-    emulator.v[x]+= (instruction & 0xFF) as u8;
+    emulator.v[x] = emulator.v[x].wrapping_add((instruction & 0xFF) as u8);
 }
 
 // 8xy0 - LD Vx, Vy
@@ -289,7 +295,7 @@ pub fn drw(emulator: &mut Emulator, instruction: u16) {
     emulator.v[0xF] = 0;
 
     for i in 0..=n {
-        let height = ((y + i) % 32) * 32;
+        let height = ((y + i) % 32) * 64;
         // 8 pixels per sprite line
         for j in 0..8 {
             let width = (x + j) % 64;
