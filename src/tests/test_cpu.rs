@@ -370,7 +370,7 @@ fn rnd() {
     crate::cpu::rnd(&mut emulator, instruction);
 
     // assert
-    assert!(emulator.v[4] < 0x10);
+    assert!(emulator.v[4] <= 0x10);
 }
 
 #[test]
@@ -463,7 +463,7 @@ fn ldiv() {
 fn ldb() {
     // arrange
     let mut emulator = Emulator::default();
-    emulator.v[4] = 321;
+    emulator.v[4] = 123;
 
     let instruction = 0xF433;
 
@@ -471,9 +471,9 @@ fn ldb() {
     crate::cpu::ldb(&mut emulator, instruction);
 
     // assert
-    assert_eq!(emulator.ram[emulator.i as usize], 3);
+    assert_eq!(emulator.ram[emulator.i as usize], 1);
     assert_eq!(emulator.ram[emulator.i as usize + 1], 2);
-    assert_eq!(emulator.ram[emulator.i as usize + 2], 1);
+    assert_eq!(emulator.ram[emulator.i as usize + 2], 3);
 }
 
 #[test]
@@ -506,7 +506,7 @@ fn ldvi() {
     let instruction = 0xF265;
 
     // act
-    crate::cpu::ldii(&mut emulator, instruction);
+    crate::cpu::ldvi(&mut emulator, instruction);
 
     // assert
     assert_eq!(emulator.v[0], 1);

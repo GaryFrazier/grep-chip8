@@ -1,5 +1,6 @@
 use crate::emulator::Emulator;
 use crate::hex_util;
+use rand::prelude::*;
 
 pub fn execute_next_instruction(emulator: &mut Emulator) {
     let instruction: u16 = get_next_instruction(emulator);
@@ -247,35 +248,18 @@ pub fn snexy(emulator: &mut Emulator, instruction: u16) {
     }
 }
 
-// DELETE
-// _ if (instruction & 0xA000 == 0xA000) => ldi(emulator, instruction), // Annn
-// _ if (instruction & 0xB000 == 0xB000) => jpv(emulator, instruction), // Bnnn
-// _ if (instruction & 0xC000 == 0xC000) => rnd(emulator, instruction), // Cxkk
-// _ if (instruction & 0xD000 == 0xD000) => drw(emulator, instruction), // Dxyn
-// _ if (instruction & 0xE09E == 0xE09E) => skp(emulator, instruction), // Ex9E
-// _ if (instruction & 0xE0A1 == 0xE0A1) => sknp(emulator, instruction), // ExA1
-// _ if (instruction & 0xF007 == 0xF007) => ldxdt(emulator, instruction), // Fx07
-// _ if (instruction & 0xF00A == 0xF00A) => ldk(emulator, instruction), // Fx0A
-// _ if (instruction & 0xF015 == 0xF015) => lddt(emulator, instruction), // Fx15
-// _ if (instruction & 0xF018 == 0xF018) => ldst(emulator, instruction), // Fx18
-// _ if (instruction & 0xF01E == 0xF01E) => addi(emulator, instruction), // Fx1E
-// _ if (instruction & 0xF029 == 0xF029) => ldiv(emulator, instruction), // Fx29
-// _ if (instruction & 0xF033 == 0xF033) => ldb(emulator, instruction), // Fx33
-// _ if (instruction & 0xF055 == 0xF055) => ldii(emulator, instruction), // Fx55
-// _ if (instruction & 0xF065 == 0xF065) => ldvi(emulator, instruction), // Fx65
-
 // Annn - LD I, addr
 // Set I = nnn.
 // The value of register I is set to nnn.
 pub fn ldi(emulator: &mut Emulator, instruction: u16) {
-    
+    emulator.i = instruction & 0xFFF;
 }
 
 // Bnnn - JP V0, addr
 // Jump to location nnn + V0.
 // The program counter is set to nnn plus the value of V0.
 pub fn jpv(emulator: &mut Emulator, instruction: u16) {
-    
+    emulator.pc = (instruction & 0xFFF) + emulator.v[0] as u16;
 }
 
 // Cxkk - RND Vx, byte
@@ -283,7 +267,9 @@ pub fn jpv(emulator: &mut Emulator, instruction: u16) {
 // The interpreter generates a random number from 0 to 255, which is then ANDed with the value kk. 
 // The results are stored in Vx. See instruction 8xy2 for more information on AND.
 pub fn rnd(emulator: &mut Emulator, instruction: u16) {
-    
+    let x = hex_util::get_nth_nibble(instruction, 3);
+    let rng = rand::thread_rng().gen_range(0..=0xFF);
+    emulator.v[x] = ((instruction & 0xFF) as u8) & rng;
 }
 
 // Dxyn - DRW Vx, Vy, nibbler
@@ -317,7 +303,8 @@ pub fn sknp(emulator: &mut Emulator, instruction: u16) {
 // Set Vx = delay timer value.
 // The value of DT is placed into Vx.
 pub fn ldxdt(emulator: &mut Emulator, instruction: u16) {
-    
+    let x = hex_util::get_nth_nibble(instruction, 3);
+    emulator.v[x] = emulator.delay_timer;
 }
 
 // Fx0A - LD Vx, K
@@ -331,21 +318,24 @@ pub fn ldk(emulator: &mut Emulator, instruction: u16) {
 // Set delay timer = Vx.
 // DT is set equal to the value of Vx.
 pub fn lddt(emulator: &mut Emulator, instruction: u16) {
-    
+    let x = hex_util::get_nth_nibble(instruction, 3);
+    emulator.delay_timer = emulator.v[x];
 }
 
 // Fx18 - LD ST, Vx
 // Set sound timer = Vx.
 // ST is set equal to the value of Vx.
 pub fn ldst(emulator: &mut Emulator, instruction: u16) {
-    
+    let x = hex_util::get_nth_nibble(instruction, 3);
+    emulator.sound_timer = emulator.v[x];
 }
 
 // Fx1E - ADD I, Vx
 // Set I = I + Vx.
 // The values of I and Vx are added, and the results are stored in I.
 pub fn addi(emulator: &mut Emulator, instruction: u16) {
-    
+    let x = hex_util::get_nth_nibble(instruction, 3);
+    emulator.i += emulator.v[x] as u16;
 }
 
 // Fx29 - LD F, Vx
@@ -361,19 +351,32 @@ pub fn ldiv(emulator: &mut Emulator, instruction: u16) {
 // The interpreter takes the decimal value of Vx, and places the hundreds digit in memory at location in I,
 // the tens digit at location I+1, and the ones digit at location I+2.
 pub fn ldb(emulator: &mut Emulator, instruction: u16) {
-    
+    let x = hex_util::get_nth_nibble(instruction, 3);
+    let num = emulator.v[x];
+
+    emulator.ram[emulator.i as usize] = num / 100;
+    emulator.ram[(emulator.i + 1) as usize] = (num % 100) / 10;
+    emulator.ram[(emulator.i + 2) as usize] = num % 10;
 }
 
 // Fx55 - LD [I], Vx
 // Store registers V0 through Vx in memory starting at location I.
 // The interpreter copies the values of registers V0 through Vx into memory, starting at the address in I.
 pub fn ldii(emulator: &mut Emulator, instruction: u16) {
-    
+    let x = hex_util::get_nth_nibble(instruction, 3);
+
+    for i in 0..=x {
+        emulator.ram[emulator.i as usize + i] = emulator.v[i];
+    }
 }
 
 // Fx65 - LD Vx, [I]
 // Read registers V0 through Vx from memory starting at location I.
 // The interpreter reads values from memory starting at location I into registers V0 through Vx.
 pub fn ldvi(emulator: &mut Emulator, instruction: u16) {
-    
+    let x = hex_util::get_nth_nibble(instruction, 3);
+
+    for i in 0..=x {
+        emulator.v[i] = emulator.ram[emulator.i as usize + i];
+    }
 }
