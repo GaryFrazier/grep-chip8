@@ -336,19 +336,27 @@ fn ldi() {
     // arrange
     let mut emulator = Emulator::default();
     
+    let instruction = 0xA450;
 
+    // act
     crate::cpu::ldi(&mut emulator, instruction);
-    assert_eq!(emulator.pc, 2);
+
+    // assert
+    assert_eq!(emulator.i, 0x450);
 }
 
 #[test]
 fn jpv() {
     // arrange
     let mut emulator = Emulator::default();
-    
+    emulator.v[0] = 0x1;
+    let instruction = 0xB450;
 
+    // act
     crate::cpu::jpv(&mut emulator, instruction);
-    assert_eq!(emulator.pc, 2);
+
+    // assert
+    assert_eq!(emulator.pc, 0x451);
 }
 
 #[test]
@@ -356,127 +364,152 @@ fn rnd() {
     // arrange
     let mut emulator = Emulator::default();
     
+    let instruction = 0xC410;
 
+    // act
     crate::cpu::rnd(&mut emulator, instruction);
-    assert_eq!(emulator.pc, 2);
+
+    // assert
+    assert!(emulator.v[4] < 0x10);
 }
 
 #[test]
 fn drw() {
-    // arrange
-    let mut emulator = Emulator::default();
-    
-
-    crate::cpu::drw(&mut emulator, instruction);
-    assert_eq!(emulator.pc, 2);
+    // todo
 }
 
 #[test]
 fn skp() {
-    // arrange
-    let mut emulator = Emulator::default();
-    
-
-    crate::cpu::skp(&mut emulator, instruction);
-    assert_eq!(emulator.pc, 2);
+    // todo
 }
 
 #[test]
 fn sknp() {
-    // arrange
-    let mut emulator = Emulator::default();
-    
-
-    crate::cpu::sknp(&mut emulator, instruction);
-    assert_eq!(emulator.pc, 2);
+     // todo
 }
 
 #[test]
 fn ldxdt() {
     // arrange
     let mut emulator = Emulator::default();
-    
+    emulator.delay_timer = 0x10;
 
+    let instruction = 0xF407;
+
+    // act
     crate::cpu::ldxdt(&mut emulator, instruction);
-    assert_eq!(emulator.pc, 2);
+
+    // assert
+    assert_eq!(emulator.v[4], emulator.delay_timer);
 }
 
 #[test]
 fn ldk() {
-    // arrange
-    let mut emulator = Emulator::default();
-    
-
-    crate::cpu::ldk(&mut emulator, instruction);
-    assert_eq!(emulator.pc, 2);
+    // todo
 }
 
 #[test]
 fn lddt() {
     // arrange
     let mut emulator = Emulator::default();
-    
+    emulator.v[4] = 0x10;
 
+    let instruction = 0xF415;
+
+    // act
     crate::cpu::lddt(&mut emulator, instruction);
-    assert_eq!(emulator.pc, 2);
+
+    // assert
+    assert_eq!(emulator.delay_timer, emulator.v[4]);
 }
 
 #[test]
 fn ldst() {
     // arrange
     let mut emulator = Emulator::default();
-    
+    emulator.v[4] = 0x10;
 
+    let instruction = 0xF418;
+
+    // act
     crate::cpu::ldst(&mut emulator, instruction);
-    assert_eq!(emulator.pc, 2);
+
+    // assert
+    assert_eq!(emulator.sound_timer, emulator.v[4]);
 }
 
 #[test]
 fn addi() {
     // arrange
     let mut emulator = Emulator::default();
-    
+    emulator.v[4] = 0x10;
+    emulator.i = 0x2;
 
+    let instruction = 0xF41E;
+
+    // act
     crate::cpu::addi(&mut emulator, instruction);
-    assert_eq!(emulator.pc, 2);
+
+    // assert
+    assert_eq!(emulator.i, 0x12);
 }
 
 #[test]
 fn ldiv() {
-    // arrange
-    let mut emulator = Emulator::default();
-    
-
-    crate::cpu::ldiv(&mut emulator, instruction);
-    assert_eq!(emulator.pc, 2);
+    // todo
 }
 
 #[test]
 fn ldb() {
     // arrange
     let mut emulator = Emulator::default();
-    
+    emulator.v[4] = 321;
 
+    let instruction = 0xF433;
+
+    // act
     crate::cpu::ldb(&mut emulator, instruction);
-    assert_eq!(emulator.pc, 2);
+
+    // assert
+    assert_eq!(emulator.ram[emulator.i as usize], 3);
+    assert_eq!(emulator.ram[emulator.i as usize + 1], 2);
+    assert_eq!(emulator.ram[emulator.i as usize + 2], 1);
 }
 
 #[test]
 fn ldii() {
     // arrange
     let mut emulator = Emulator::default();
-    
+    emulator.v[0] = 0x1;
+    emulator.v[1] = 0x2;
+    emulator.v[2] = 0x3;
 
+    let instruction = 0xF255;
+
+    // act
     crate::cpu::ldii(&mut emulator, instruction);
-    assert_eq!(emulator.pc, 2);
+
+    // assert
+    assert_eq!(emulator.ram[emulator.i as usize], 1);
+    assert_eq!(emulator.ram[emulator.i as usize + 1], 2);
+    assert_eq!(emulator.ram[emulator.i as usize + 2], 3);
 }
 
 #[test]
 fn ldvi() {
     // arrange
     let mut emulator = Emulator::default();
-    
+    emulator.ram[0] = 0x1;
+    emulator.ram[1] = 0x2;
+    emulator.ram[2] = 0x3;
 
-    crate::cpu::ldvi(&mut emulator, instruction);
-    assert_eq!(emulator.pc, 2);
+    let instruction = 0xF265;
+
+    // act
+    crate::cpu::ldii(&mut emulator, instruction);
+
+    // assert
+    assert_eq!(emulator.v[0], 1);
+    assert_eq!(emulator.v[1], 2);
+    assert_eq!(emulator.v[2], 3);
 }
